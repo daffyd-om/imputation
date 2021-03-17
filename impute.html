@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Imputation techniques</title>
+    <meta charset="utf-8" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <script src="libs/htmlwidgets/htmlwidgets.js"></script>
+    <script src="libs/viz/viz.js"></script>
+    <link href="libs/DiagrammeR-styles/styles.css" rel="stylesheet" />
+    <script src="libs/grViz-binding/grViz.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+
+
+class:top,left
+
+background-image: url("img/dtu_red.png")
+
+background-size: contain
+
+
+---
+class: top, left
+
+background-image: url("img/impdtu.png")
+
+background-size: contain
+
+
+
+
+
+---
+class: middle, left
+
+&lt;!-- edit name1 and name2 in the YAML above --&gt;
+
+
+
+
+
+
+## Learning objectives 🎒
+
+--
+
+
+- Describe technique for imputation of missing data
+
+
+--
+
+
+- Carry out data imputation
+
+
+## Contents 👣
+
+
+- __PART I__
+
+
+--
+
+
+- Missing data at random &amp; not at random
+
+
+--
+
+
+- Things to consider before doing imputation and Deduce missing values
+
+
+
+--
+
+
+
+- __PART II___
+
+
+- __Imputation approaches__
+
+
+--
+
+
+- single imputation
+    
+
+--
+
+
+- multiple imputation
+
+
+
+
+
+
+
+???
+
+
+a) Deductive imputation
+    
+
+
+    
+    
+- Imputation using algorithm(s) 
+
+ - obtain the missing data
+
+ - single and multiple
+
+
+
+---
+class:middle, inverse
+
+### Missing data
+
+
+
+
+
+
+--
+
+
+&gt; Incomplete information is a very common problem.
+
+
+
+
+
+<div id="htmlwidget-425795bd0c9da4f37984" style="width:60%;height:200px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-425795bd0c9da4f37984">{"x":{"diagram":"digraph{\n                  graph [layout = dot, rankdir = LR]\n                  node [shape = rectangle]\n                  rec1 [label = \"missing data\"]\n                  rec2 [label = \"deletion\"]\n                  rec3 [label = \"impute\"]\n                  rec1 -> rec2\n                  rec1 -> rec3\n                  }\n                  ","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+
+
+--
+
+.pull-left[
+
+__At random__  🎲
+
+- missingness is nothing to do with the subject being studied
+
+- unreadable sample labels, damaged sample during the transportation
+
+
+
+
+
+]
+
+
+--
+
+
+.pull-right[
+
+__not at random__
+
+- the missing values of a variable are related to the variable itself
+
+
+-  missing answers in the questionnaire for fear to be penalized
+
+
+]
+
+
+???
+
+| Type          	| What is it?                                                	| Example                                                                	|
+|---------------	|-----------------------------------------------------------	|------------------------------------------------------------------------	|
+| At random     	| missingness is nothing to do with the subject being studied         	| unreadable sample labels, damaged sample during the transportation 	|
+| Not at random 	| the missing values of a variable are related to the variable itself 	| missing answers in the questionnaire for fear to be penalized       	|
+
+
+
+---
+class: center
+
+## Deletion shortcommings*
+
+
+.pull-left[
+
+
+<div id="htmlwidget-229e37e5a6aaa1aa7fc2" style="width:90%;height:500px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-229e37e5a6aaa1aa7fc2">{"x":{"diagram":"digraph {\n  graph [layout = dot, rankdir = TB]\n  \n  node [shape = rectangle]        \n  rec1 [label = \"Data set\"]\n  rec2 [label = \"Missing data \n completly at random\"]\n  rec3 [label = \"Missing data \n not at random\"]\n  rec7 [label = \"casedeletion\"]\n  rec8 [label = \"casedeletion\"]\n  rec4 [label = \"Likelihood \n of bias = no\"]\n  rec5 [label = \"Likelihood \n of bias = yes\"]\n  rec6 [label = \"Less power\"]\n  \n  # edge definitions with the node IDs\n  rec1 ->  rec2 \n  rec1 ->  rec3\n  rec2 ->  rec7\n  rec3 ->  rec8\n  rec7 ->  rec4\n  rec8 ->  rec5\n  rec4 ->  rec6\n  }","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+
+]
+
+
+.pull-right[
+
+__case deletion__
+
+👍 the discarded cases are like a random subsample. 
+
+👎 the discarded cases are not missing at random, let alone less power, estimates may be seriously biased.
+
+💭 in multivariate problems, large portion data discarded causes an unacceptable loss of power
+
+
+]
+
+
+.footnote[[*] Schafer JL. Multiple imputation: a primer. Statistical Methods in Medical Research. 1999;8(1):3-15]
+
+
+???
+
+
+- subjects having any predictor or dependable missing data is excluded from an analysis. 
+
+
+
+- if the missing data is not at random.  the consequence is that regression coefficient estimates that can be very biased,
+
+
+-
+
+
+- casewise deletion of incomplete records is inefficient too. 
+
+
+
+
+- the power of the analysis decreases
+
+
+
+
+- it increases standard errors,widens confidence intervals and decreases the fit of the model
+
+
+---
+class: middle, inverse
+
+--
+
+## __STEPs__ before doing imputation
+
+--
+
+#### Describe and clean data 📈
+
+--
+
+
+#### Deduce missing data 	🤔
+
+
+--
+
+
+#### Try getting missing data; i. e. calling ☎, or other means📧
+
+
+
+---
+class:top
+### Describe and clean your data 🔍 	
+
+--
+
+- __CASE 1__ Consider set as missing (NA) impossible data
+
+--
+
+
+.pull-left[
+
+
+```
+##      students age
+##   1:   female   3
+##   2:   female  22
+##   3:   female  29
+##   4:   female  29
+##   5:   female  22
+##  ---             
+## 496:   female  29
+## 497:     male  24
+## 498:   female  19
+## 499:   female  34
+## 500:   female  24
+```
+
+
+
+
+```r
+range(dfa$age)
+```
+
+```
+## [1]   3 200
+```
+
+]
+
+
+--
+
+
+.pull-right[
+&lt;img src="impute_files/figure-html/unnamed-chunk-5-1.png" width="80%" /&gt;
+
+
+
+]
+
+
+--
+
+
+See __outliers__ they are impossible values; consider set as NA
+
+
+
+???
+
+
+
+class:top, center
+
+
+&lt;img src="img/deduc.png" dpi = 200&gt;
+
+
+What do you do with these values? 
+
+
+---
+class:top
+### Describe and clean your data 🔍 	
+
+--
+
+
+__CASE 2__ many missing values
+
+
+--
+
+
+- consider deletion of variables and observations 🤔
+
+
+
+
+
+
+- __variable__ with many missing observations (16/30)
+
+
+
+```
+##  [1]  32  NA  30  NA  46  NA  48  NA  55  NA  64  NA  NA  NA
+## [15]  NA  NA  66  NA  90  NA  97  NA 100  NA 110  NA  87  NA
+## [29]  85 106
+```
+
+
+
+--
+
+- __observation__ with missing data points (3/10) 
+
+
+
+```
+##   2010 2011 2012 2013 2014 2015 2016 2017 2018 2019
+## 1   NA   NA   NA   NA   NA   NA   NA   NA   50   48
+```
+
+
+
+--
+
+
+
+
+- __delete__ variables with &gt; 50% missingness*
+
+- __delete__ observations with &gt;80% missigness*
+
+
+
+.footnote[[*] Thresholds up to you. Based on Tibor V. Varga and David Westergaard (2020). missCompare: Intuitive Missing Data Imputation Framework. ]
+
+
+
+
+
+---
+class: middle, left, inverse
+
+## Deduce __missing__ data 🤔
+
+
+--
+
+#### sometimes you get the missing data by deductive imputation*:
+
+--
+
+- constant variables: e.g. gender
+
+--
+
+- prospective changes: e.g. age
+
+--
+
+- cumulative variables: e.g. parity, pregnancies
+
+--
+
+- dependent variables: e.g. Body mass index
+
+
+
+
+.footnote[[*] Tibor V. Varga and David Westergaard (2020). missCompare: Intuitive Missing Data Imputation Framework.]
+
+---
+class: top, left
+
+&gt; __Constant__ species, gender, name, breed. 
+&gt; __prospective data__ i.e time
+
+
+
+--
+
+
+
+.pull-left[
+
+#### before
+
+| ID  	| Date       	| Specie  	| MRSA     	|
+|-----	|------------	|---------	|----------	|
+| ID1 	| 01-01-2010 	| cattle  	| negative 	|
+| ID1 	| 01-01-2011 	| __NA__   	| positive 	|
+| ID1 	| 01-01-2012 	| cattle  	| positive 	|
+
+]
+
+
+--
+
+
+.pull-right[
+#### after
+
+| ID  	| Date       	| Specie  	| MRSA     	|
+|-----	|------------	|---------	|----------	|
+| ID1 	| 01-01-2010 	| cattle  	| negative 	|
+| ID1 	| 01-01-2011 	| __cattle__| positive 	|
+| ID1 	| 01-01-2012 	| cattle  	| positive 	|
+
+]
+
+
+
+
+--
+
+
+
+.pull-left[
+
+#### before
+
+
+| ID  	| Date       	| Age     	| MRSA     	|
+|-----	|------------	|---------	|----------	|
+| ID1 	| 01-01-2010 	| 1       	| negative 	|
+| ID1 	| NA        	| 2       	| positive 	|
+| ID1 	| 01-01-2012 	| 3         | positive 	|
+
+]
+
+
+--
+
+
+.pull-right[
+
+#### after
+
+
+| ID  	| Date       	| Age     	| MRSA     	|
+|-----	|------------	|---------	|----------	|
+| ID1 	| 01-01-2010 	| 1       	| negative 	|
+| ID1 	| __01-01-2011__ 	| 2        	| positive 	|
+| ID1 	| 01-01-2012 	| 3         | positive 	|
+
+]
+
+
+
+???
+## Imputation strategies
+
+&gt; Imputation of missing data is better than discarding incomplete observations.
+
+
+---
+class:top, left
+
+
+
+&gt; __Cumulative Variables__ parity class &amp; __Dependant variables__ DDD
+
+
+--
+
+
+.pull-left[
+
+#### before
+
+| ID  	| Year 	| parity class	| MRSA     	|
+|-----	|------	|-------------  |----------	|
+| ID1 	| 2010 	| 1             | negative 	|
+| ID1 	| 2011 	| __NA__        | positive 	|
+| ID1 	| 2012 	| 3  	          | positive 	|
+
+]
+
+--
+
+.pull-right[
+
+#### after
+
+| ID  	| Years	| parity class	| MRSA     	|
+|-----	|------	|-------------- |----------	|
+| ID1 	| 2010 	| 1             | negative 	|
+| ID1 	| 2011 	| __2__         | positive 	|
+| ID1 	| 2012 	| 3  	          | positive 	|
+
+]
+
+---
+
+ 
+
+&gt; __Dependant variables__ DDD/person-year `\(=\frac{DDD}{population}\)` 
+
+###  some simple maths (➗  ,   ✖  ,    ➖   ,    ➕)
+
+
+
+--
+
+#### before
+
+| Region  	| Population 	| DDD         	| DDD/person-year     	    |
+|--------   |------------	|-------------- |-------------------------	|
+| a    	    | 4e+06     	| 20e+06        | 5       	                |
+| b 	      | 10e+05    	| 50e+05        | __NA__   	                |
+| c 	      |  10e+06	    | 30e+06        | 3       	                |
+
+
+
+
+--
+
+
+
+#### after
+
+| Region  	| Population 	| DDD         	| DDD/person-year   |
+|--------   |------------	|-------------- |------------------	|
+| a    	    | 4e+06 	    | 20e+06        | 5                 |
+| b 	      | 1e+05    	  | 5e+05         | __5__             |
+| c 	      |  10e+06	    | 30e+06        | 3   	            |
+
+
+
+
+---
+class:top, left, inverse
+
+### Quiz: Deduce the missing value
+
+
+--
+
+
+.pull-left[
+
+| Isolate 	| MIC 	| AST 	|
+|---------	|-----	|-----	|
+| 1       	| 12  	| R   	|
+| 2       	| 4   	| S   	|
+| 3       	| 8   	| __?__	|
+
+
+]
+
+
+
+
+--
+
+
+
+
+
+.pull-right[
+
+
+&lt;img src = "img/ast.png" width = 600&gt;
+
+]
+
+
+
+
+--
+
+### Answer
+
+
+--
+
+
+| Isolate 	| MIC 	| AST 	|
+|---------	|-----	|-----	|
+| 1       	| 12  	| R   	|
+| 2       	| 4   	| S   	|
+| 3       	| 8   	| R    	|
+
+
+
+
+
+
+
+
+
+
+
+
+???
+
+
+class: bottom, left
+
+
+
+
+
+##### Penicillins consumption in the EU, DDD per 1,000 inhabitants per day
+
+
+
+---
+
+# PART II
+
+
+--
+
+
+## Imputation techniques
+
+
+--
+
+
+__Imputation__, the practice of 'filling in' missing data with plausible values*
+
+
+
+--
+
+
+Single imputation
+
+
+--
+
+__e.g.__ mean, median
+
+
+--
+
+
+
+Multiple imputation
+
+
+--
+
+__e.g.__ probability methods
+
+
+--
+
+
+
+.footnote[[*] Schafer JL. Multiple imputation: a primer. Statistical Methods in Medical Research. 1999;8(1):3-15]
+
+
+
+
+
+
+
+
+---
+class:top
+
+### Imputation guidelines*
+
+
+#### Proportion of missings __&lt;= 0.05:__ 
+
+
+- " __single imputation__...missing data is filled in without an 
+explicit model ..."(C.A.W. Glas, 2010)
+
+
+--
+
+- __continuous variables__ imputing missings with the median or mean 
+  
+--
+    
+- __categorical predictors__ the most frequent category can be used 
+
+--
+
+#### Proportion of missings &gt;__0.05 
+
+
+- __Multiple imputation__ which "... aims to allow for the uncertainty about the missing data by creating several different plausible imputed data sets and appropriately combining results obtained from each of them." (BMJ 2009;338:b2393)
+
+
+--
+
+
+    
+.footnote[[*] Regression Model Strategies, F. Harrel Jr]
+
+
+
+???
+
+
+---
+
+### Single imputation example: numeric and categorical
+
+
+--
+
+
+
+
+
+
+
+
+
+.pull-left[
+
+Before missing numeric
+
+
+
+
+
+```
+##      [,1] [,2]
+*## [1,]   NA    6
+*## [2,]    2   NA
+*## [3,]   NA    8
+## [4,]    4    9
+## [5,]    5   10
+```
+
+
+
+
+]
+
+
+
+--
+
+
+
+.pull-right[
+
+
+after
+
+
+
+
+```
+##      [,1] [,2]
+*## [1,]  6*   6  
+*## [2,]  2    6* 
+*## [3,]  6*   8  
+## [4,]  4    9  
+## [5,]  5   10  
+## attr(,"names")
+##  [1] 1  2  3  4  5  6  7  8  9  10
+```
+
+
+
+
+]
+
+
+--
+
+
+.pull-left[
+
+
+before missing character
+
+
+
+|x1 | x2|   x3|  y|
+|:--|--:|----:|--:|
+|NA |  3| -1.3|  4|
+|NA |  3|  3.2|  5|
+|NA |  3| -0.4|  4|
+|b  |  1|  0.3|  2|
+
+]
+
+
+--
+
+
+.pull-right[
+
+after (most common character is used)
+
+
+|x1 |x2     |x3     |y     |
+|:--|:------|:------|:-----|
+|b  |2.8667 |-1.260 |3.634 |
+|b  |2.5926 |3.241  |4.761 |
+|b  |2.5713 |-0.417 |4.405 |
+|b  |1.1214 |0.298  |1.800 |
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+???
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+class:top, left
+
+## Multiple imputation: example*
+
+
+
+
+
+
+
+
+
+
+--
+
+
+
+
+
+|Country     | 2010| 2011| 2012| 2013| 2014| 2015| 2016|
+|:-----------|----:|----:|----:|----:|----:|----:|----:|
+|Netherlands |   32|   32|   32|   32|   31|   31|   31|
+|Latvia      |   NA|   41|   42|   44|   41|   44|   43|
+|Austria     |   48|   47|   45|   53|   47|   47|   47|
+|Slovakia    |   NA|   NA|   NA|   NA|   NA|   NA|   NA|
+|Bulgaria    |   55|   57|   53|   57|   56|   55|   47|
+|Sweden      |   NA|   67|   66|   63|   64|   60|   60|
+
+
+--
+
+- Let us see a summary of the data and clean it 
+
+--
+
+.footnote[[*]Trends in consumption of tetracyclines (ATC group J01A) in the community, EU/EEA countries, 20010–2019, expressed as DDD per 1 000 inhabitants per day. The __data__ used here  has been modified inserting NA at random for teaching purposes]
+
+
+???
+
+Maybe cleaning (remove variable with a lot of missing data)
+
+
+
+
+
+
+
+- Let us see some plots of these data 
+
+---
+### Data* summary
+
+
+```
+*##    Country               2010          2011    
+##  Length:30          Min.   : 30   Min.   : 29  
+##  Class :character   1st Qu.: 50   1st Qu.: 57  
+##  Mode  :character   Median : 76   Median : 69  
+##                     Mean   : 73   Mean   : 74  
+##                     3rd Qu.: 95   3rd Qu.: 90  
+##                     Max.   :110   Max.   :132  
+*##                     NA's   :16    NA's   :1
+```
+
+--
+
+
+```
+## # A tibble: 1 x 10
+*##   Country  `2010` `2011` `2012` `2013` `2014` `2015` `2016`
+##   &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+*## 1 Slovakia     NA     NA     NA     NA     NA     NA     NA
+## # ... with 2 more variables: 2017 &lt;dbl&gt;, 2018 &lt;dbl&gt;
+```
+
+
+
+
+.footnote[[*] Original data from European Surveillance System (TESSy). The __data__ used here  has been modified inserting NA at random for teaching purposes]
+
+
+
+
+---
+class:left
+
+### Cleaning data:
+
+1. Remove variable with a great proportion of missing data** and 
+
+
+2. Visualize missing data** 
+
+
+
+
+
+
+
+
+
+
+
+
+
+.pull-left[
+
+
+&lt;img src="impute_files/figure-html/unnamed-chunk-31-1.png" width="90%" /&gt;
+
+
+
+
+]
+
+
+.pull-right[
+
+
+
+__left__  plot Gray areas are the missing data
+
+Variable year 2010 has been removed prior the plot due to the large number of missing
+data __up to you__ to keep it or remove
+
+
+
+
+
+
+]
+
+
+--
+
+
+
+.footnote[[**] done with missCompare: Intuitive Missing Data Imputation Framework. Tibor V. Varga and David Westergaard (2020).]
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+???
+
+
+__Right__ plot hierarchical clustering of missing data. closer to Height 0 represent closer relationships in terms of missing data
+
+
+
+
+
+
+
+--
+
+
+
+
+
+
+
+
+
+
+
+---
+### Multiple Imputation*
+
+
+
+
+.pull-left[
+
+
+```
+## # A tibble: 4 x 4
+##   Country  X2011 X2012 X2013
+##   &lt;fct&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 Latvia    41    42    44  
+## 2 Austria   47    45    53  
+*## 3 Slovakia  55.0  52.3  53.4
+## 4 Bulgaria  57    53    57
+```
+
+
+Note Slovakia missing values have been imputed
+
+
+]
+
+--
+
+
+
+
+.pull-right[
+
+
+Here the means of the columns. If we would have used single imputation by using columns means.
+
+
+
+```
+## X2011 X2012 X2013 
+*##    50    48    52
+```
+
+]
+
+
+--
+
+.footnote[[*] An iterative method using a probabilistic model. Stacklies, W. et al., pcaMethods -- a Bioconductor package providing PCA methods for incomplete data. Bioinformatics, 2007, 23, 1164-1167]
+
+
+???
+
+## How good was the imputation
+
+
+
+```r
+mdComp &lt;- eu
+
+eu2 &lt;- as.matrix(eu)
+eum2 &lt;- as.matrix(eum)
+unm2 &lt;- as.matrix(unm)
+
+sum((eu2[is.na(eum2)] - unm2[is.na(eum2)])^2) / sum(eu2[is.na(eum2)]^2)
+#sum((mdComp[is.na(mD)] - imputed[is.na(mD)])^2) / sum(mdComp[is.na(mD)]^2)
+```
+
+
+---
+class: inverse, right, bottom
+
+
+### We learned about
+
+
+--
+
+
+Missing data types
+
+
+--
+
+
+Impute by deducing
+
+
+
+--
+
+
+Single and multiple imputation techniques  
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
